@@ -18,16 +18,6 @@ public class UserServiceImpl implements UserService {
     private UserDto loggedInUser = null;
 
     @Override
-    public Optional<UserDto> signIn(String username, String password) {
-        Optional<User> user = userRepository.findByUsernameAndPassword(username, password);
-        if (user.isEmpty()) {
-            return Optional.empty();
-        }
-        loggedInUser = new UserDto(user.get().getUsername(), user.get().getRole());
-        return describe();
-    }
-
-    @Override
     public Optional<UserDto> signInAdmin(String username, String password) {
         Optional<User> user = userRepository.findByUsernameAndPassword(username, password);
         if (user.isEmpty() || user.get().getRole() != User.Role.ADMIN) {
@@ -50,8 +40,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void registerUser(String username, String password) {
-        User user = new User(username, password, User.Role.USER);
-        userRepository.save(user);
+    public Boolean isAuthenticated() {
+        return loggedInUser != null;
+    }
+
+    @Override
+    public Boolean isAuthenticated(User.Role role) {
+        return isAuthenticated() && loggedInUser.role() == role;
     }
 }
