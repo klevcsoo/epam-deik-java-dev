@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "rooms")
 @Data
