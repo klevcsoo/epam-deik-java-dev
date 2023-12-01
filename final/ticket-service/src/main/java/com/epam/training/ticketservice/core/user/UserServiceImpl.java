@@ -2,16 +2,17 @@ package com.epam.training.ticketservice.core.user;
 
 import com.epam.training.ticketservice.core.user.model.UserDto;
 import com.epam.training.ticketservice.core.user.persistance.User;
+import com.epam.training.ticketservice.core.user.persistance.User.Role;
 import com.epam.training.ticketservice.core.user.persistance.UserRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
     @Autowired
     private final UserRepository userRepository;
 
@@ -40,12 +41,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean isAuthenticated() {
-        return loggedInUser != null;
+    public void requireAuthentication() throws UnauthenticatedException {
+        if (loggedInUser == null) {
+            throw new UnauthenticatedException();
+        }
     }
 
     @Override
-    public Boolean isAuthenticated(User.Role role) {
-        return isAuthenticated() && loggedInUser.role() == role;
+    public void requireAuthorization(Role role)
+        throws UnauthenticatedException, UnauthorizedException {
+        requireAuthentication();
+        if (loggedInUser.role() != role) {
+            throw new UnauthorizedException();
+        }
     }
 }

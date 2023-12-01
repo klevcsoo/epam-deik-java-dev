@@ -11,8 +11,9 @@ import com.epam.training.ticketservice.core.screening.ScreeningsBreakNotHonoredE
 import com.epam.training.ticketservice.core.screening.ScreeningsOverlapException;
 import com.epam.training.ticketservice.core.screening.persistance.Screening;
 import com.epam.training.ticketservice.core.screening.persistance.ScreeningId;
+import com.epam.training.ticketservice.core.user.UserException;
 import com.epam.training.ticketservice.core.user.UserService;
-import com.epam.training.ticketservice.core.user.persistance.User;
+import com.epam.training.ticketservice.core.user.persistance.User.Role;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -42,19 +43,16 @@ public class ScreeningCommands {
 
     @ShellMethod(key = "create screening", value = "Create a new screening")
     public String createScreening(String movieTitle, String roomName, String timeText) {
-        LocalDateTime time = LocalDateTime.parse(timeText, format);
-
-        if (!userService.isAuthenticated(User.Role.ADMIN)) {
-            return "You need to be signed in as a privileged user to use this command.";
-        }
-
         try {
+            LocalDateTime time = LocalDateTime.parse(timeText, format);
+            userService.requireAuthorization(Role.ADMIN);
+
             Movie movie = movieService.get(movieTitle).orElseThrow(MovieNotFoundException::new);
             Room room = roomService.get(roomName).orElseThrow(RoomNotFoundException::new);
             screeningService.set(new Screening(movie, room, time));
-        } catch (ScreeningsOverlapException | ScreeningsBreakNotHonoredException |
+        } catch (UserException | ScreeningsOverlapException | ScreeningsBreakNotHonoredException |
                  MovieNotFoundException | RoomNotFoundException e) {
-            return e.getMessage();
+            return e.getLocalizedMessage();
         } catch (Exception e) {
             return "Failed to create screening: " + e.getLocalizedMessage();
         }
@@ -64,19 +62,16 @@ public class ScreeningCommands {
 
     @ShellMethod(key = "delete screen", value = "Delete a screening")
     public String deleteScreening(String movieTitle, String roomName, String timeText) {
-        LocalDateTime time = LocalDateTime.parse(timeText, format);
-
-        if (!userService.isAuthenticated(User.Role.ADMIN)) {
-            return "You need to be signed in as a privileged user to use this command.";
-        }
-
         try {
+            LocalDateTime time = LocalDateTime.parse(timeText, format);
+            userService.requireAuthorization(Role.ADMIN);
+
             Movie movie = movieService.get(movieTitle).orElseThrow(MovieNotFoundException::new);
             Room room = roomService.get(roomName).orElseThrow(RoomNotFoundException::new);
             screeningService.delete(new ScreeningId(movie, room, time));
-        } catch (ScreeningsOverlapException | ScreeningsBreakNotHonoredException |
+        } catch (UserException | ScreeningsOverlapException | ScreeningsBreakNotHonoredException |
                  MovieNotFoundException | RoomNotFoundException e) {
-            return e.getMessage();
+            return e.getLocalizedMessage();
         } catch (Exception e) {
             return "Failed to delete screening: " + e.getLocalizedMessage();
         }

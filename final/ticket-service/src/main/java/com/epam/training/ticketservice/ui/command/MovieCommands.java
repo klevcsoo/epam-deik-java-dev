@@ -1,19 +1,22 @@
 package com.epam.training.ticketservice.ui.command;
 
+import com.epam.training.ticketservice.core.movie.MovieNotFoundException;
 import com.epam.training.ticketservice.core.movie.MovieService;
 import com.epam.training.ticketservice.core.movie.persistance.Movie;
+import com.epam.training.ticketservice.core.user.UserException;
 import com.epam.training.ticketservice.core.user.UserService;
-import com.epam.training.ticketservice.core.user.persistance.User;
+import com.epam.training.ticketservice.core.user.persistance.User.Role;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
-import java.util.List;
-
 @ShellComponent
 @RequiredArgsConstructor
 public class MovieCommands {
+
     @Autowired
     private final MovieService movieService;
 
@@ -22,12 +25,11 @@ public class MovieCommands {
 
     @ShellMethod(key = "create movie", value = "Create a new movie")
     public String createMovie(String title, String genre, Integer length) {
-        if (!userService.isAuthenticated(User.Role.ADMIN)) {
-            return "You need to be signed in as a privileged user to use this command.";
-        }
-
         try {
+            userService.requireAuthorization(Role.ADMIN);
             movieService.set(new Movie(title, genre, length));
+        } catch (UserException e) {
+            return e.getLocalizedMessage();
         } catch (Exception e) {
             return "Failed to create movie: " + e.getLocalizedMessage();
         }
@@ -37,16 +39,16 @@ public class MovieCommands {
 
     @ShellMethod(key = "update movie", value = "Update an existing room")
     public String updateMovie(String title, String genre, Integer length) {
-        if (!userService.isAuthenticated(User.Role.ADMIN)) {
-            return "You need to be signed in as a privileged user to use this command.";
-        }
-
-        if (movieService.get(title).isEmpty()) {
-            return "Movie doesn't exist. You can create one via the 'create movie' command.";
-        }
-
         try {
+            userService.requireAuthorization(Role.ADMIN);
+
+            if (movieService.get(title).isEmpty()) {
+                throw new MovieNotFoundException();
+            }
+
             movieService.set(new Movie(title, genre, length));
+        } catch (UserException | MovieNotFoundException e) {
+            return e.getLocalizedMessage();
         } catch (Exception e) {
             return "Failed to update movie: " + e.getLocalizedMessage();
         }
@@ -56,16 +58,16 @@ public class MovieCommands {
 
     @ShellMethod(key = "delete movie", value = "Delete a movie")
     public String deleteMovie(String title) {
-        if (!userService.isAuthenticated(User.Role.ADMIN)) {
-            return "You need to be signed in as a privileged user to use this command.";
-        }
-
-        if (movieService.get(title).isEmpty()) {
-            return "Movie doesn't exist. You can create one via the 'create movie' command.";
-        }
-
         try {
+            userService.requireAuthorization(Role.ADMIN);
+
+            if (movieService.get(title).isEmpty()) {
+                throw new MovieNotFoundException();
+            }
+
             movieService.delete(title);
+        } catch (UserException | MovieNotFoundException e) {
+            return e.getLocalizedMessage();
         } catch (Exception e) {
             return "Failed to delete movie: " + e.getLocalizedMessage();
         }
@@ -80,9 +82,7 @@ public class MovieCommands {
             if (movies.isEmpty()) {
                 return "There are no movies at the moment.";
             } else {
-                StringBuilder builder = new StringBuilder();
-                movies.forEach(movie -> builder.append(movie.getTitle()).append(" (").append(movie.getGenre()).append(", ").append(movie.getLength()).append(" minutes)"));
-                return builder.toString();
+                return movies.stream().map(Movie::toString).collect(Collectors.joining("\n"));
             }
         } catch (Exception e) {
             return "Failed to fetch movies: " + e.getLocalizedMessage();
