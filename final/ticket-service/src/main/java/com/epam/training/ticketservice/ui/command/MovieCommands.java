@@ -27,7 +27,7 @@ public class MovieCommands {
         }
 
         try {
-            movieService.setMovie(title, genre, length);
+            movieService.set(new Movie(title, genre, length));
         } catch (Exception e) {
             return "Failed to create movie: " + e.getLocalizedMessage();
         }
@@ -35,18 +35,18 @@ public class MovieCommands {
         return "Movie created.";
     }
 
-    @ShellMethod(key = "update movie", value = "Update an existing")
+    @ShellMethod(key = "update movie", value = "Update an existing room")
     public String updateMovie(String title, String genre, Integer length) {
         if (!userService.isAuthenticated(User.Role.ADMIN)) {
             return "You need to be signed in as a privileged user to use this command.";
         }
 
-        if (movieService.getMovie(title).isEmpty()) {
+        if (movieService.get(title).isEmpty()) {
             return "Movie doesn't exist. You can create one via the 'create movie' command.";
         }
 
         try {
-            movieService.setMovie(title, genre, length);
+            movieService.set(new Movie(title, genre, length));
         } catch (Exception e) {
             return "Failed to update movie: " + e.getLocalizedMessage();
         }
@@ -60,12 +60,12 @@ public class MovieCommands {
             return "You need to be signed in as a privileged user to use this command.";
         }
 
-        if (movieService.getMovie(title).isEmpty()) {
+        if (movieService.get(title).isEmpty()) {
             return "Movie doesn't exist. You can create one via the 'create movie' command.";
         }
 
         try {
-            movieService.deleteMovie(title);
+            movieService.delete(title);
         } catch (Exception e) {
             return "Failed to delete movie: " + e.getLocalizedMessage();
         }
@@ -76,7 +76,7 @@ public class MovieCommands {
     @ShellMethod(key = "list movies", value = "List the existing movies")
     public String listMovies() {
         try {
-            List<Movie> movies = movieService.listMovies();
+            List<Movie> movies = movieService.list();
             if (movies.isEmpty()) {
                 return "There are no movies at the moment.";
             } else {

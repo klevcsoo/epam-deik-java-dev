@@ -17,23 +17,22 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
 
     @Override
-    public void setMovie(String title, String genre, Integer length) {
-        Movie movie = movieRepository.findByTitle(title).orElse(new Movie(title, genre, length));
-        movieRepository.save(movie);
+    public void set(Movie entity) {
+        movieRepository.save(entity);
     }
 
     @Override
-    public void deleteMovie(String title) {
+    public void delete(String title) {
         movieRepository.deleteById(title);
     }
 
     @Override
-    public List<Movie> listMovies() {
+    public List<Movie> list() {
         return movieRepository.findAll(Sort.by("title").ascending());
     }
 
     @Override
-    public Optional<Movie> getMovie(String title) {
+    public Optional<Movie> get(String title) {
         return movieRepository.findById(title);
     }
 }
