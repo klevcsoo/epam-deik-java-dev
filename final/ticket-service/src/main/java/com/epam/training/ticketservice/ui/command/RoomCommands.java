@@ -80,7 +80,7 @@ public class RoomCommands {
         try {
             List<Room> rooms = roomService.list();
             if (rooms.isEmpty()) {
-                return "There are no rooms at the moment.";
+                return "There are no rooms at the moment";
             } else {
                 return rooms.stream().map(Room::toString).collect(Collectors.joining("\n"));
             }

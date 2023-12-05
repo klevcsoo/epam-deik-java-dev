@@ -80,7 +80,7 @@ public class MovieCommands {
         try {
             List<Movie> movies = movieService.list();
             if (movies.isEmpty()) {
-                return "There are no movies at the moment.";
+                return "There are no movies at the moment";
             } else {
                 return movies.stream().map(Movie::toString).collect(Collectors.joining("\n"));
             }
